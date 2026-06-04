@@ -11,24 +11,35 @@
 
 #define PWR_MGMT_1 0x6B
 
+#define WHO_AM_I 0x75
 
 
 
 
-static struct i2c_dt_spec dev_i2c;
 
-int init_sensor(const struct i2c_dt_spec *pass) {
-    if (!device_is_ready(dev_i2c.bus)) {
+
+int init_sensor(const struct i2c_dt_spec *dev_i2c) {
+    
+    if (!device_is_ready(dev_i2c->bus)) {
         return -1;
     }
 
     uint8_t write_buf[] = {PWR_MGMT_1, 0x00};
-    int ret = i2c_write_dt(&dev_i2c, write_buf, sizeof(write_buf));
+    int ret = i2c_write_dt(dev_i2c, write_buf, sizeof(write_buf));
     if (ret != 0) {
         return ret;
     }
-
+    uint8_t who_am_i;
+    ret = i2c_burst_read_dt(dev_i2c, WHO_AM_I, &who_am_i, 1);
+    if (ret != 0) {
+        return ret;
+    }
+    if (who_am_i != 0b110100) {
+        return -2;
+    }
     return 0;
+
+    
 
 }
 
