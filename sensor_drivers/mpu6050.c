@@ -14,10 +14,6 @@
 #define WHO_AM_I 0x75
 
 
-
-
-
-
 int init_sensor(const struct i2c_dt_spec *dev_i2c) {
     
     if (!device_is_ready(dev_i2c->bus)) {
