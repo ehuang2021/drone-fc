@@ -1,6 +1,8 @@
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/i2c.h>
+#include <zephyr/logging/log.h>
 #include "mpu6050.h"
+
 /*The outputs here will return the acceleration*/
 // Accelerometer Measurements
 #define ACCEL_XOUT_7_0  0x3B
@@ -9,11 +11,14 @@
 #define PWR_MGMT_1 0x6B
 #define GYRO_CONFIG 0x1B
 
+#define I2C_NODE DT_NODELABEL(mpu6050)
 
 // GYRO Deadzone Fix
 #define GYRO_DZ 25
 #define LSB_SENS 16384
 
+
+LOG_MODULE_REGISTER(mpu6050_driver, LOGLEVEL_DBG);
 
 static int16_t accel_bias_x = 0;
 static int16_t accel_bias_y = 0;
@@ -22,25 +27,26 @@ static int16_t gyro_bias_x = 0;
 static int16_t gyro_bias_y = 0;
 static int16_t gyro_bias_z = 0;
 
-int init_sensor(const struct i2c_dt_spec *dev_i2c) {
+static const struct i2c_dt_spec dev_i2c = I2C_DT_SPEC_GET(I2C_NODE);
+
+int init_mpu6050() {
     
     float accel_sum_x = 0, accel_sum_y = 0, accel_sum_z = 0, gyro_sum_x = 0, gyro_sum_y = 0, gyro_sum_z = 0;
-    struct accelrometer_data acc;
-    struct gyro_data gyro;
+    struct imu_data acc;
 
     // Check I2C bus
-    if (!device_is_ready(dev_i2c->bus)) {
+    if (!device_is_ready(dev_i2c.bus)) {
         return -1;
     }
 
     // Start-up register config to Sensor
     uint8_t write_buf1[] = {PWR_MGMT_1, 0x00};
-    int ret = i2c_write_dt(dev_i2c, write_buf1, sizeof(write_buf1));
+    int ret = i2c_write_dt(&dev_i2c, write_buf1, sizeof(write_buf1));
     if (ret != 0) {
         return ret;
     }
     uint8_t write_buf2[] = {GYRO_CONFIG, 0b00001000};
-    ret = i2c_write_dt(dev_i2c, write_buf2, sizeof(write_buf2));
+    ret = i2c_write_dt(&dev_i2c, write_buf2, sizeof(write_buf2));
     if (ret != 0) {
         return ret;
     }
@@ -48,15 +54,13 @@ int init_sensor(const struct i2c_dt_spec *dev_i2c) {
     int num = 1000;
     // Perform a baseline calibration of the sensor. 
     for (int i = 0; i < num; i++) {
-        read_acclerometer(dev_i2c, &acc);
-        accel_sum_x += acc.x;
-        accel_sum_y += acc.y;
-        accel_sum_z += acc.z;
-
-        read_gyro(dev_i2c, &gyro);
-        gyro_sum_x += gyro.x;
-        gyro_sum_y += gyro.y;
-        gyro_sum_z += gyro.z;
+        read_data(&acc);
+        accel_sum_x += acc.ax;
+        accel_sum_y += acc.ay;
+        accel_sum_z += acc.az;
+        gyro_sum_x += acc.gx;
+        gyro_sum_y += acc.gy;
+        gyro_sum_z += acc.gz;
     }
     accel_bias_x = 0-accel_sum_x/num;
     accel_bias_y = 0-accel_sum_y/num;
@@ -65,8 +69,7 @@ int init_sensor(const struct i2c_dt_spec *dev_i2c) {
     gyro_bias_x = gyro_sum_x/num;
     gyro_bias_y = gyro_sum_y/num;
     gyro_bias_z = gyro_sum_z/num;
-    printk("Accel Bias: %d, %d, %d\n", accel_bias_x, accel_bias_y, accel_bias_z);
-    printk("Gyro Bias: %d, %d, %d\n", gyro_bias_x, gyro_bias_y, gyro_bias_z);
+    LOG_INF("Accel Bias: %d, %d, %d\nGyro Bias: %d, %d, %d", accel_bias_x, accel_bias_y, accel_bias_z, gyro_bias_x, gyro_bias_y, gyro_bias_z);
 
 
 
@@ -75,37 +78,27 @@ int init_sensor(const struct i2c_dt_spec *dev_i2c) {
 
 }
 
-int read_acclerometer(const struct i2c_dt_spec *dev_i2c, struct accelrometer_data *data) {
+int read_data(struct imu_data *data) {
 
-    uint8_t vals[6];
+    uint8_t vals[14];
     // Read x,y,z vals at once
-    int ret = i2c_burst_read_dt(dev_i2c, ACCEL_XOUT_7_0, vals, 6);
+    int ret = i2c_burst_read_dt(&dev_i2c, ACCEL_XOUT_7_0, vals, 14);
     if (ret != 0) {
         return ret;
     }
 
-    data->x = (vals[0] << 8 | vals[1]) + accel_bias_x;
-    data->y = (vals[2] << 8 | vals[3]) + accel_bias_y;
-    data->z = (vals[4] << 8 | vals[5]) + accel_bias_z;
+    data->ax = (vals[0] << 8 | vals[1]) + accel_bias_x;
+    data->ay = (vals[2] << 8 | vals[3]) + accel_bias_y;
+    data->az = (vals[4] << 8 | vals[5]) + accel_bias_z;
+    data->temp = (vals[6] << 8 | vals[7]);
+    data->gx = (vals[8] << 8 | vals[9]) - gyro_bias_x;
+    data->gy = (vals[10] << 8 | vals[11]) - gyro_bias_y;
+    data->gz = (vals[12] << 8 | vals[13]) - gyro_bias_z;
+
 
     return 0;
 
 }
 
-int read_gyro(const struct i2c_dt_spec *dev_i2c, struct gyro_data *data) {
 
-    uint8_t vals[6];
-    // Read x,y,z vals at once
-    int ret = i2c_burst_read_dt(dev_i2c, GYRO_XOUT_7_0, vals, 6);
-    if (ret != 0) {
-        return ret;
-    }
-
-    data->x = (vals[0] << 8 | vals[1]) - gyro_bias_x;
-    data->y = (vals[2] << 8 | vals[3]) - gyro_bias_y;
-    data->z = (vals[4] << 8 | vals[5]) - gyro_bias_z;
-
-    return 0;
-
-}
 
