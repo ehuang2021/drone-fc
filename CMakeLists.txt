@@ -4,10 +4,13 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(drone_fc)
 
 # include sensor drivers folder
-target_include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/sensor_drivers)
+target_include_directories(app PRIVATE 
+${CMAKE_CURRENT_SOURCE_DIR}/sensor_drivers
+src/)
 
 target_sources(app PRIVATE 
 src/main.c
 sensor_drivers/mpu6050.c
+src/imu.c
 )
 
