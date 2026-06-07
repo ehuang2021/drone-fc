@@ -18,10 +18,12 @@
     pinctrl-0 = <&i2c0_default>;
     pinctrl-1 = <&i2c0_sleep>;
     pinctrl-names = "default", "sleep";
-    mysensor: mysensor@68 {
-        compatible = "i2c-device";
+    mpu6050: mpu6050@68 {
+        compatible = "invensense,mpu6050";
         status = "okay";
         reg = <0x68>;
+
+        int-gpios = <&gpio0 11 GPIO_ACTIVE_HIGH>;
     };
 };
 
