@@ -4,6 +4,7 @@
 #include <zephyr/logging/log.h>
 
 #include "mpu6050.h"
+#include "imu.h"
 #include "global_objects.h"
 
 
@@ -23,7 +24,7 @@ void mpu_inturrupt(const struct device *dev, struct gpio_callback *cb, uint32_t 
         k_sem_give(&instance_monitor);
 }
 
-int mpu_thread(void *p1, void *p2, void *p3)
+void mpu_thread(void *p1, void *p2, void *p3)
 {
 
         struct imu_data acc;
@@ -32,11 +33,10 @@ int mpu_thread(void *p1, void *p2, void *p3)
         while (1) {
                 
                 k_sem_take(&instance_monitor, K_FOREVER);
-
+                packet.timestamp = k_cycle_get_64();
                 int ret = read_data(&acc);
                 if (ret) {
-                        LOG_ERR("read_data error, something is wrong within the mpu driver. Error code: %d", ret);
-                        return ret;
+                        continue;
                 }
 
                 packet.ax = acc.ax;
@@ -45,9 +45,12 @@ int mpu_thread(void *p1, void *p2, void *p3)
                 packet.gx = acc.gx;
                 packet.gy = acc.gy;
                 packet.gz = acc.gz;
-                packet.timestamp = k_uptime_get();
                 
-                
+                ret = k_msgq_put(&altitude_message_queue, &packet, K_NO_WAIT);
+
+                if (ret) {
+                        LOG_ERR("imu -> altitude thread message queue issue, altitude is lagging. error code %d", ret);
+                }
 
         }
 
