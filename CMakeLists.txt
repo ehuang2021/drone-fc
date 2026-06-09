@@ -12,5 +12,7 @@ target_sources(app PRIVATE
 src/main.c
 sensor_drivers/mpu6050.c
 src/imu.c
+src/attitude.c
+src/magdwick_filter.c
 )
 
