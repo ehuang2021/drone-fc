@@ -14,6 +14,9 @@
 #define IMU_STACKSIZE 1024
 #define IMU_THREAD_PRIORITY 0
 
+#define ATTITUDE_STACKSIZE 2048
+#define ATTITUDE_THREAD_PRIORITY 1
+
 
 // Initalize GPIO
 static struct gpio_dt_spec mpu_int_gpio = GPIO_DT_SPEC_GET(I2C_NODE, int_gpios);
@@ -43,9 +46,14 @@ int initalize_imu_inturrupts() {
 
 }
 
-K_MSGQ_DEFINE(altitude_message_queue, sizeof(struct imu_packet), 1, sizeof(void *));
+// Initalizes the imu -> attitude message queue
+K_MSGQ_DEFINE(attitude_message_queue, sizeof(struct imu_packet), 1, sizeof(void *));
+// Initlaize the attiude -> pid thread
+K_MSGQ_DEFINE(controls_message_queue, sizeof(attitude_data), 1, sizeof(void *));
 
-K_THREAD_DEFINE(imu_thread, IMU_STACKSIZE, mpu_thread, NULL, NULL, NULL, IMU_THREAD_PRIORITY, 0, 0);
+
+K_THREAD_DEFINE(imu_tasks, IMU_STACKSIZE, mpu_thread, NULL, NULL, NULL, IMU_THREAD_PRIORITY, 0, 0);
+K_THREAD_DEFINE(attitude_tasks, ATTITUDE_STACKSIZE, attitude_thread, NULL, NULL, NULL, ATTITUDE_THREAD_PRIORITY, 0, 0);
 
 int main() {
     init_mpu6050();
