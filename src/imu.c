@@ -8,6 +8,7 @@
 #include "global_objects.h"
 
 
+
 #define I2C_NODE DT_NODELABEL(mpu6050)
 #define ACC_LSB_SENS 16384
 #define GYRO_LSB_SENS 655
@@ -33,23 +34,23 @@ void mpu_thread(void *p1, void *p2, void *p3)
         while (1) {
                 
                 k_sem_take(&instance_monitor, K_FOREVER);
-                packet.timestamp = k_cycle_get_64();
+                packet.timestamp = k_uptime_ticks();
                 int ret = read_data(&acc);
                 if (ret) {
                         continue;
                 }
 
-                packet.ax = acc.ax;
-                packet.ay = acc.ay;
-                packet.az = acc.az;
-                packet.gx = acc.gx;
-                packet.gy = acc.gy;
-                packet.gz = acc.gz;
+                packet.ax = acc.ax/ACC_LSB_SENS;
+                packet.ay = acc.ay/ACC_LSB_SENS;
+                packet.az = acc.az/ACC_LSB_SENS;
+                packet.gx = acc.gx/GYRO_LSB_SENS;
+                packet.gy = acc.gy/GYRO_LSB_SENS;
+                packet.gz = acc.gz/GYRO_LSB_SENS;
                 
-                ret = k_msgq_put(&altitude_message_queue, &packet, K_NO_WAIT);
+                ret = k_msgq_put(&attitude_message_queue, &packet, K_NO_WAIT);
 
                 if (ret) {
-                        LOG_ERR("imu -> altitude thread message queue issue, altitude is lagging. error code %d", ret);
+                        LOG_ERR("imu -> attitude thread message queue issue, attitude is lagging. error code %d", ret);
                 }
 
         }
@@ -59,7 +60,7 @@ void mpu_thread(void *p1, void *p2, void *p3)
 }
 
 /*
-        packet.ax = acc.acc_x*1000/ACC_LSB_SENS;
+        packet.ax = acc.acc_x/ACC_LSB_SENS;
         packet.ax = acc.acc_y*1000/ACC_LSB_SENS;
         packet.ax = acc.acc_z*1000/ACC_LSB_SENS;
 

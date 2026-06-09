@@ -1,16 +1,25 @@
 #ifndef GLOBAL_OBJECTS_H
 #define GLOBAL_OBJECTS_H
 
-struct imu_packet {
-    int16_t ax, ay, az;
-    int16_t gx, gy, gz;
-    int64_t timestamp;
+// message packet for imu -> attitude threads
+struct imu_packet   {
+    float ax, ay, az;
+    float gx, gy, gz; 
+    int64_t timestamp; // Total ticks
 
 };
 
+// message packet for attitude -> control threads
+typedef struct {
+    float roll;
+    float pitch;
+    float yaw;
+} attitude_data;
 
-extern struct k_msgq altitude_message_queue;
+extern struct k_msgq attitude_message_queue;
+extern struct k_msgq controls_message_queue;
 
 extern void mpu_thread(void *p1, void *p2, void *p3);
+extern void attitude_thread(void *p1, void *p2, void *p3);
 
 #endif
