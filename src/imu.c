@@ -11,7 +11,7 @@
 
 #define I2C_NODE DT_NODELABEL(mpu6050)
 #define ACC_LSB_SENS 16384
-#define GYRO_LSB_SENS 655
+#define GYRO_LSB_SENS 65.5
 
 // Logger module for logs
 LOG_MODULE_REGISTER(imu_task, LOG_LEVEL_DBG);
@@ -40,12 +40,12 @@ void mpu_thread(void *p1, void *p2, void *p3)
                         continue;
                 }
 
-                packet.ax = acc.ax/ACC_LSB_SENS;
-                packet.ay = acc.ay/ACC_LSB_SENS;
-                packet.az = acc.az/ACC_LSB_SENS;
-                packet.gx = acc.gx/GYRO_LSB_SENS;
-                packet.gy = acc.gy/GYRO_LSB_SENS;
-                packet.gz = acc.gz/GYRO_LSB_SENS;
+                packet.ax = (float) acc.ax/ACC_LSB_SENS;
+                packet.ay = (float)acc.ay/ACC_LSB_SENS;
+                packet.az = (float)acc.az/ACC_LSB_SENS;
+                packet.gx = (float)acc.gx/GYRO_LSB_SENS;
+                packet.gy = (float)acc.gy/GYRO_LSB_SENS;
+                packet.gz = (float)acc.gz/GYRO_LSB_SENS;
                 
                 ret = k_msgq_put(&attitude_message_queue, &packet, K_NO_WAIT);
 
