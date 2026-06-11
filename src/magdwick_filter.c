@@ -2,21 +2,22 @@
 /*This is taken from the original Madgwick paper
 https://web.enib.fr/~kerhoas/iot/reseau-de-capteurs/carte-imu-mpu9250/documents/INVENSENSE/madgwick_internal_report.pdf
 
-The only things I've changed is adding a quanterion pointer for an output, as well as changing the sampling period to
-a true delta that will require time to be passed in. 
+The only things I've changed is adding a quanterion pointer for an output, changing the sampling period to
+a true delta that will require time to be passed in, and changing the math to 32 bit precision for the nrf52832 FPU
 */
 // Math library required for ‘sqrtf’
 #include <math.h>
 #include "magdwick_filter.h"
+#include <stdbool.h>
 // System constants
-#define deltat 0.001f // sampling period in seconds (shown as 1 ms)
+#define deltaa 0.002f // sampling period in seconds (shown as 1 ms)
 #define gyroMeasError 3.14159265358979f * (5.0f / 180.0f) // gyroscope measurement error in rad/s (shown as 5 deg/s)
 #define beta sqrtf(3.0f / 4.0f) * gyroMeasError // compute beta
 // Global system variables
 float a_x, a_y, a_z; // accelerometer measurements
 float w_x, w_y, w_z; // gyroscope measurements in rad/s
 float SEq_1 = 1.0f, SEq_2 = 0.0f, SEq_3 = 0.0f, SEq_4 = 0.0f; // estimated orientation quaternion elements with initial conditions
-
+bool check = 0;
 /**
  * @brief Magdwick filter
  * 
@@ -34,6 +35,9 @@ float SEq_1 = 1.0f, SEq_2 = 0.0f, SEq_3 = 0.0f, SEq_4 = 0.0f; // estimated orien
  */
 void filterUpdate(float w_x, float w_y, float w_z, float a_x, float a_y, float a_z, Quanterion *q, float delta)
 {
+
+
+
 // Local system variables
 float norm; // vector norm
 float SEqDot_omega_1, SEqDot_omega_2, SEqDot_omega_3, SEqDot_omega_4; // quaternion derrivative from gyroscopes elements
@@ -41,13 +45,13 @@ float f_1, f_2, f_3; // objective function elements
 float J_11or24, J_12or23, J_13or22, J_14or21, J_32, J_33; // objective function Jacobian elements
 float SEqHatDot_1, SEqHatDot_2, SEqHatDot_3, SEqHatDot_4; // estimated direction of the gyroscope error
 // Axulirary variables to avoid reapeated calcualtions
-float halfSEq_1 = 0.5f * SEq_1;
-float halfSEq_2 = 0.5f * SEq_2;
-float halfSEq_3 = 0.5f * SEq_3;
-float halfSEq_4 = 0.5f * SEq_4;
-float twoSEq_1 = 2.0f * SEq_1;
-float twoSEq_2 = 2.0f * SEq_2;
-float twoSEq_3 = 2.0f * SEq_3;
+float halfSEq_1 = 0.5f * q->q1;
+float halfSEq_2 = 0.5f * q->q2;
+float halfSEq_3 = 0.5f * q->q3;
+float halfSEq_4 = 0.5f * q->q4;
+float twoSEq_1 = 2.0f * q->q1;
+float twoSEq_2 = 2.0f * q->q2;
+float twoSEq_3 = 2.0f * q->q3;
 
 
 // Normalise the accelerometer measurement
@@ -56,11 +60,11 @@ a_x /= norm;
 a_y /= norm;
 a_z /= norm;
 // Compute the objective function and Jacobian
-f_1 = twoSEq_2 * SEq_4 - twoSEq_1 * SEq_3 - a_x;
-f_2 = twoSEq_1 * SEq_2 + twoSEq_3 * SEq_4 - a_y;
-f_3 = 1.0f - twoSEq_2 * SEq_2 - twoSEq_3 * SEq_3 - a_z;
+f_1 = twoSEq_2 * q->q4 - twoSEq_1 * q->q3 - a_x;
+f_2 = twoSEq_1 * q->q2 + twoSEq_3 * q->q4 - a_y;
+f_3 = 1.0f - twoSEq_2 * q->q2 - twoSEq_3 * q->q3 - a_z;
 J_11or24 = twoSEq_3; // J_11 negated in matrix multiplication
-J_12or23 = 2.0f * SEq_4;
+J_12or23 = 2.0f * q->q4;
 J_13or22 = twoSEq_1; // J_12 negated in matrix multiplication
 J_14or21 = twoSEq_2;
 J_32 = 2.0f * J_14or21; // negated in matrix multiplication
@@ -87,7 +91,7 @@ q->q2 += (SEqDot_omega_2 - (beta * SEqHatDot_2)) * delta;
 q->q3 += (SEqDot_omega_3 - (beta * SEqHatDot_3)) * delta;
 q->q4 += (SEqDot_omega_4 - (beta * SEqHatDot_4)) * delta;
 // Normalise quaternion
-norm = sqrtf(SEq_1 * SEq_1 + SEq_2 * SEq_2 + SEq_3 * SEq_3 + SEq_4 * SEq_4);
+norm = sqrtf(q->q1 * q->q1 + q->q2 * q->q2 + q->q3 * q->q3 + q->q4 * q->q4);
 q->q1 /= norm;
 q->q2 /= norm;
 q->q3 /= norm;
