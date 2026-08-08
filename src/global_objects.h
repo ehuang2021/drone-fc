@@ -10,7 +10,7 @@ struct imu_packet   {
 };
 
 // message packet for attitude -> control threads
-typedef struct {
+typedef struct attitude_data {
     float roll;
     float pitch;
     float yaw;
@@ -18,8 +18,10 @@ typedef struct {
 
 extern struct k_msgq attitude_message_queue;
 extern struct k_msgq controls_message_queue;
+extern struct k_msgq pwm_message_queue;
 
 extern void mpu_thread(void *p1, void *p2, void *p3);
 extern void attitude_thread(void *p1, void *p2, void *p3);
-
+extern void pid_thread(void *p1, void *p2, void *p3);
+extern void pwm_thread(void *p1, void *p2, void *p3);
 #endif

@@ -10,8 +10,8 @@
 
 
 #define I2C_NODE DT_NODELABEL(mpu6050)
-#define ACC_LSB_SENS 16384
-#define GYRO_LSB_SENS 65.5
+#define ACC_LSB_SENS 16384.0f
+#define GYRO_LSB_SENS 65.5f
 
 // Logger module for logs
 LOG_MODULE_REGISTER(imu_task, LOG_LEVEL_DBG);

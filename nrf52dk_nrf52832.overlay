@@ -23,15 +23,22 @@
         status = "okay";
         reg = <0x68>;
 
-        int-gpios = <&gpio0 11 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+        int-gpios = <&gpio0 15 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
     };
+};
+
+&pwm1 {
+    status = "okay";
+    pinctrl-0 = <&pwm1_default>;
+    pinctrl-names = "default";
+
 };
 
 &pinctrl {
     /omit-if-no-ref/ i2c0_default: i2c0_default {
         group1 {
-                psels = <NRF_PSEL(TWIM_SCL, 0, 27)>,
-				<NRF_PSEL(TWIM_SDA, 0, 26)>;
+                psels = <NRF_PSEL(TWIM_SCL, 0, 13)>,
+				<NRF_PSEL(TWIM_SDA, 0, 14)>;
                 bias-pull-up;
 
         };
@@ -39,10 +46,16 @@
 
     /omit-if-no-ref/ i2c0_sleep: i2c0_sleep {
         		group1  {
-			psels = <NRF_PSEL(TWIM_SCL, 0, 27)>,
-					<NRF_PSEL(TWIM_SDA, 0, 26)>;
+			psels = <NRF_PSEL(TWIM_SCL, 0, 13)>,
+					<NRF_PSEL(TWIM_SDA, 0, 14)>;
 			low-power-enable;
 
 		};
+    };
+
+    pwm1_default: pwm1_default {
+        group1 {
+            psels = <NRF_PSEL(PWM_OUT0, 0, 27)>;
+        };
     };
 };

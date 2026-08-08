@@ -14,5 +14,7 @@ sensor_drivers/mpu6050.c
 src/imu.c
 src/attitude.c
 src/magdwick_filter.c
+src/pid.c
+src/pwm.c
 )
 

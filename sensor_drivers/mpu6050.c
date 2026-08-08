@@ -102,7 +102,8 @@ int init_mpu6050() {
         return ret;
     }
 
-    // Inturrupt Pin configuration. It is active low, as a push-pull. Int will also emit a 50us pulse, and will clear on any read opperation
+    // Interrupt is active-low, open-drain, emits a 50 us pulse, and clears on any read.
+    // R5 provides the external pull-up to +3V3 on the flight controller.
     uint8_t write_buf5[] = {INT_PIN_CONFIG, 0b11010000};
     ret = i2c_write_dt(&dev_i2c, write_buf5, sizeof(write_buf5));
     if (ret != 0) {
@@ -148,6 +149,5 @@ int init_mpu6050() {
 
 
 }
-
 
 
