@@ -34,6 +34,29 @@
 
 };
 
+/* Drone systems monitor ADC input: nRF52832 P0.28 = SAADC AIN4. */
+&adc {
+    status = "okay";
+    #address-cells = <1>;
+    #size-cells = <0>;
+
+    channel@4 {
+        reg = <4>;
+        zephyr,gain = "ADC_GAIN_1_6";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+        zephyr,input-positive = <NRF_SAADC_AIN4>;
+        zephyr,resolution = <12>;
+    };
+};
+
+/ {
+    zephyr,user {
+        io-channels = <&adc 4>;
+        io-channel-names = "systems";
+    };
+};
+
 &pinctrl {
     /omit-if-no-ref/ i2c0_default: i2c0_default {
         group1 {

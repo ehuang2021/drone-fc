@@ -6,6 +6,7 @@
 
 #include "global_objects.h"
 #include "pwm.h"
+#include "ble.h"
 
 #define ESC_PWM_NODE DT_NODELABEL(pwm1)
 
@@ -18,6 +19,7 @@ LOG_MODULE_REGISTER(pwm_task, LOG_LEVEL_DBG);
 void pwm_thread(void *p1, void *p2, void *p3) {
 
     float throttle;
+    uint8_t ble_push = 0;
 
     if (!device_is_ready(esc_pwm)) {
         LOG_ERR("PWM device not ready");
@@ -29,6 +31,13 @@ void pwm_thread(void *p1, void *p2, void *p3) {
 
     
         pwm_set(esc_pwm, 0, PWM_MSEC(20), PWM_USEC(throttle_mapper(throttle)), PWM_POLARITY_NORMAL);
+
+        // Downsample actuator telemetry from 250hz to 25hz
+        ble_push++;
+        if (ble_push >= 10) {
+            ble_publish_actuator(throttle);
+            ble_push = 0;
+        }
 
     }
 }

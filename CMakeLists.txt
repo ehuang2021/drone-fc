@@ -16,5 +16,6 @@ src/attitude.c
 src/magdwick_filter.c
 src/pid.c
 src/pwm.c
+src/drone_systems.c
+src/bluetooth.c
 )
-

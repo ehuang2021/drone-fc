@@ -51,6 +51,9 @@ void mpu_thread(void *p1, void *p2, void *p3)
 
                 if (ret) {
                         LOG_ERR("imu -> attitude thread message queue issue, attitude is lagging. error code %d", ret);
+                        k_msgq_purge(&attitude_message_queue);
+                        k_msgq_put(&attitude_message_queue, &packet, K_NO_WAIT);
+
                 }
 
         }

@@ -24,4 +24,5 @@ extern void mpu_thread(void *p1, void *p2, void *p3);
 extern void attitude_thread(void *p1, void *p2, void *p3);
 extern void pid_thread(void *p1, void *p2, void *p3);
 extern void pwm_thread(void *p1, void *p2, void *p3);
+extern void drone_systems_thread(void *p1, void *p2, void *p3);
 #endif

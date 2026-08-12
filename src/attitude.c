@@ -5,6 +5,7 @@
 
 #include "global_objects.h"
 #include "magdwick_filter.h"
+#include "ble.h"
 
 #define PI 3.14159265f
 #define RAD_TO_DEG (57.2957795131f)
@@ -22,6 +23,7 @@ void attitude_thread(void *p1, void *p2, void *p3) {
     attitude_data am;
     Quanterion quants = {1.0f, 0.0f, 0.0f, 0.0f}; // This is the default 0 rotation setting
     uint64_t prev_time_ticks = 0;
+    uint8_t ble_push = 0;
 
     while (1) {
         k_msgq_get(&attitude_message_queue, &imu_message, K_FOREVER);
@@ -53,6 +55,13 @@ void attitude_thread(void *p1, void *p2, void *p3) {
 
         // Reconverts the quanterions to radians, and finally degrees
         am = quanterion_to_deg(quants);
+
+        // Downsamples attitude telemetry from 500hz to 25hz
+        ble_push++;
+        if (ble_push >= 20) {
+            ble_publish_attitude(am.roll, am.pitch, am.yaw);
+            ble_push = 0;
+        }
 
 
         // Downsamples from 500hz to 250hz for the control loop
