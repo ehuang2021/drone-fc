@@ -1,6 +1,7 @@
 # Custom nRF52832 Drone Flight Controller
 
 The controller performs 500 Hz interrupt-driven IMU reads and atittude estimation, a 250 Hz PID control pipeline, drives ESC through hardware PWM, monitors a 2S LiPo battery through the ADC, and exposes system telementry and PID configurations over BLE, allowing for real-time PID tuning.
+It's currently only for 1 axis, but will be scaled up for 3d space. 
 
 ## Key Structure/Features
 
