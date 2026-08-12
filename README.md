@@ -2,7 +2,7 @@
 
 The controller performs 500 Hz interrupt-driven IMU reads and atittude estimation, a 250 Hz PID control pipeline, drives ESC through hardware PWM, monitors a 2S LiPo battery through the ADC, and exposes system telementry and PID configurations over BLE, allowing for real-time PID tuning.
 
-## Key Features
+## Key Structure/Features
 
 ### RTOS Firmware
 - Zephyr RTOS with dedicated IMU, attitude-estimation, PID, PWM, system-monitoring, and BLE threads
