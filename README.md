@@ -62,4 +62,7 @@ regulation, and SWD programming/debug access.
 ![Flight Controller PCB](docs/images/drone_fc_v1.0_PCB.png)
 
 
+## Future Additions:
+- Safety thread that monitors the orientiation, and shutoff from connected device + hardware watchdog
+- Three axis flight (which would probably mean a kalman filter over the current madgwick, with a gps module AND a nested PID loop)
 
