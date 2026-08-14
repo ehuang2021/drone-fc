@@ -1,5 +1,5 @@
-#ifndef MAGDWICK_FILTER_H
-#define MAGDWICK_FILTER_H
+#ifndef MADGWICK_FILTER_H
+#define MADGWICK_FILTER_H
 
 typedef struct {
     float q1;

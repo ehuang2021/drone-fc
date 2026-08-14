@@ -5,7 +5,7 @@
 #include <zephyr/sys/atomic.h>
 
 #include "global_objects.h"
-#include "magdwick_filter.h"
+#include "madgwick_filter.h"
 #include "ble.h"
 
 #define PI 3.14159265f

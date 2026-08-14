@@ -7,7 +7,7 @@ a true delta that will require time to be passed in, and changing the math to 32
 */
 // Math library required for ‘sqrtf’
 #include <math.h>
-#include "magdwick_filter.h"
+#include "madgwick_filter.h"
 #include <stdbool.h>
 // System constants
 #define deltaa 0.002f // sampling period in seconds (shown as 1 ms)
@@ -19,9 +19,9 @@ float w_x, w_y, w_z; // gyroscope measurements in rad/s
 float SEq_1 = 1.0f, SEq_2 = 0.0f, SEq_3 = 0.0f, SEq_4 = 0.0f; // estimated orientation quaternion elements with initial conditions
 bool check = 0;
 /**
- * @brief Magdwick filter
+ * @brief Madgwick filter
  * 
- * This is an implementation of a Magdwick filter, which takes in accel and gyro measurements, and outputs quanterions as a repersentation of the positon
+ * This is an implementation of a Madgwick filter, which takes in accel and gyro measurements, and outputs quanterions as a repersentation of the positon
  * 
  * @param w_x Gyroscope measurements in rad/s
  * @param w_y Gyroscope measurements in rad/s
