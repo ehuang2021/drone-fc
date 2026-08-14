@@ -6,7 +6,7 @@ It's currently only for 1 axis, but will be scaled up for 3d space.
 ## Key Structure/Features
 
 ### RTOS Firmware
-- Zephyr RTOS with dedicated IMU, attitude-estimation, PID, PWM, system-monitoring, and BLE threads
+- Zephyr RTOS with dedicated IMU, attitude-estimation, PID, PWM, safety, system-monitoring, and BLE threads
 - GPIO interrupt and semaphore-driven MPU6050 acquisition at 500 Hz
 - Non-blocking message queues between processing stages
 
@@ -25,6 +25,7 @@ It's currently only for 1 axis, but will be scaled up for 3d space.
 - ADC-based monitoring of a 2S LiPo battery through a voltage divider
 - Moving-average voltage filtering
 - Approximate battery SOC tracking
+- Safety thread with heartbeat monitoring, roll-limit fault detection, and hardware watchdog support
 
 
 ## Architecture Overview
@@ -36,6 +37,11 @@ flowchart LR
     ATT -->|Downsample 2:1<br/>k_msgq| PID["PID Thread<br/>250 Hz"]
     PID -->|k_msgq| PWM["PWM Thread<br/>ESC command"]
     PWM --> ESC["ESC / Motor<br/>50 Hz PWM"]
+
+    IMU -. heartbeat .-> SAFETY["Safety Thread<br/>watchdog / fault monitoring"]
+    ATT -. heartbeat / roll .-> SAFETY
+    PID -. heartbeat .-> SAFETY
+    SAFETY -. flight state .-> PWM
 
     ATT -. attitude .-> BLE["BLE Telemetry Thread<br/>20 Hz notifications"]
     PID -. PID output .-> BLE
@@ -63,6 +69,4 @@ regulation, and SWD programming/debug access.
 
 
 ## Future Additions:
-- Safety thread that monitors the orientiation, and shutoff from connected device + hardware watchdog
 - Three axis flight (which would probably mean a kalman filter over the current madgwick, with a gps module AND a nested PID loop)
-
