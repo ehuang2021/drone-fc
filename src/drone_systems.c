@@ -63,9 +63,6 @@ static uint16_t get_charge_percentage(int32_t battery_mv)
 
 void drone_systems_thread(void *p1, void *p2, void *p3)
 {
-    ARG_UNUSED(p1);
-    ARG_UNUSED(p2);
-    ARG_UNUSED(p3);
 
     if (!adc_is_ready_dt(&systems_adc)) {
         LOG_ERR("Drone systems ADC device is not ready");

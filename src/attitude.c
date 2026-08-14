@@ -2,6 +2,7 @@
 #include <zephyr/logging/log.h>
 #include <math.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/sys/atomic.h>
 
 #include "global_objects.h"
 #include "magdwick_filter.h"
@@ -79,7 +80,9 @@ void attitude_thread(void *p1, void *p2, void *p3) {
         else {
             push = !push;
         } 
-    } 
+    }
+    atomic_set(&global_roll, (int)(am.roll*100));
+    atomic_set(&attitude_heartbeat, k_uptime_get_32());
 }
 
 attitude_data quanterion_to_deg(Quanterion q) {

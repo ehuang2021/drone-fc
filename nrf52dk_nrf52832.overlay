@@ -82,3 +82,9 @@
         };
     };
 };
+
+/ {
+    aliases {
+        watchdog0 = &wdt0;
+    };
+};

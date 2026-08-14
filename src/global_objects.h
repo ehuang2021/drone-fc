@@ -25,4 +25,25 @@ extern void attitude_thread(void *p1, void *p2, void *p3);
 extern void pid_thread(void *p1, void *p2, void *p3);
 extern void pwm_thread(void *p1, void *p2, void *p3);
 extern void drone_systems_thread(void *p1, void *p2, void *p3);
+extern void safety_thread(void *p1, void *p2, void *p3);
+
+
+
+typedef enum {
+    FLIGHT_DISARMED,
+    FLIGHT_ARMED,
+    FLIGHT_FAULT
+} flight_state_t;
+
+typedef struct {
+    flight_state_t flight_state;
+    uint32_t flight_flags;
+
+} safety_state_t;
+
+extern atomic_t pid_heartbeat;
+extern atomic_t attitude_heartbeat;
+extern atomic_t imu_heartbeat;
+extern atomic_t global_roll;
+
 #endif

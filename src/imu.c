@@ -58,6 +58,7 @@ void mpu_thread(void *p1, void *p2, void *p3)
 
         }
 
+    atomic_set(&imu_heartbeat, k_uptime_get_32());
 
 
 }

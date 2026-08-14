@@ -9,28 +9,33 @@
 #include "global_objects.h"
 #include "imu.h"
 #include "ble.h"
+#include "safety.h"
 
 #define I2C_NODE DT_NODELABEL(mpu6050)
 #define ESC_PWM_NODE DT_NODELABEL(pwm1)
 
+
 // Thread Definitions
+#define SAFETY_STACKSIZE 1024
+#define SAFETY_THREAD_PRIORITY 0
+
 #define IMU_STACKSIZE 1024
-#define IMU_THREAD_PRIORITY 0
+#define IMU_THREAD_PRIORITY 1
 
 #define ATTITUDE_STACKSIZE 2048
-#define ATTITUDE_THREAD_PRIORITY 1
+#define ATTITUDE_THREAD_PRIORITY 2
 
 #define PID_STACKSIZE 1024
-#define PID_THREAD_PRIORITY 2
+#define PID_THREAD_PRIORITY 3
 
 #define PWM_STACKSIZE 1024
-#define PWM_THREAD_PRIORITY 3
+#define PWM_THREAD_PRIORITY 4
 
 #define DRONE_SYSTEMS_STACKSIZE 1024
-#define DRONE_SYSTEMS_THREAD_PRIORITY 4
+#define DRONE_SYSTEMS_THREAD_PRIORITY 5
 
 #define BLE_STACKSIZE 2048
-#define BLE_THREAD_PRIORITY 5
+#define BLE_THREAD_PRIORITY 6
 
 // Initalize GPIO
 static struct gpio_dt_spec mpu_int_gpio = GPIO_DT_SPEC_GET(I2C_NODE, int_gpios);
@@ -76,10 +81,14 @@ K_THREAD_DEFINE(pid_tasks, PID_STACKSIZE, pid_thread, NULL, NULL, NULL, PID_THRE
 K_THREAD_DEFINE(pwm_tasks, PWM_STACKSIZE, pwm_thread, NULL, NULL, NULL, PWM_THREAD_PRIORITY, 0, 0);
 K_THREAD_DEFINE(drone_systems_tasks, DRONE_SYSTEMS_STACKSIZE, drone_systems_thread, NULL, NULL, NULL, DRONE_SYSTEMS_THREAD_PRIORITY, 0, 0);
 K_THREAD_DEFINE(ble_tasks, BLE_STACKSIZE, ble_thread, NULL, NULL, NULL, BLE_THREAD_PRIORITY, 0, 0);
+K_THREAD_DEFINE(safety_tasks, BLE_STACKSIZE, ble_thread, NULL, NULL, NULL, SAFETY_THREAD_PRIORITY, 0, 0);
+
 
 
 
 int main() {
+
+
     int ret = ble_init();
     if (ret) {
         LOG_ERR("BLE init failed, continuing without BLE");
@@ -89,11 +98,15 @@ int main() {
     initalize_imu_inturrupts();
 
 
+
     if (!device_is_ready(esc_pwm)) {
         LOG_ERR("PWM device not ready");
         return -1;
     }
 
     pwm_set(esc_pwm, 0, PWM_MSEC(20), PWM_USEC(1000), PWM_POLARITY_NORMAL);
+
+    init_watchdog();
+
     return 0;
 }

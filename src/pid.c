@@ -110,6 +110,7 @@ void pid_thread(void *p1, void *p2, void *p3) {
         }
     }
 
+    atomic_set(&pid_heartbeat, k_uptime_get_32());
 
 
 }

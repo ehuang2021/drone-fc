@@ -18,4 +18,5 @@ src/pid.c
 src/pwm.c
 src/drone_systems.c
 src/bluetooth.c
+src/safety.c
 )
