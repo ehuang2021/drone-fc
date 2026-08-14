@@ -5,7 +5,7 @@ It's currently only for 1 axis, but will be scaled up for 3d space.
 
 ## Key Structure/Features
 
-### RTOS Firmware
+### Firmware
 - Zephyr RTOS with dedicated IMU, attitude-estimation, PID, PWM, safety, system-monitoring, and BLE threads
 - GPIO interrupt and semaphore-driven MPU6050 acquisition at 500 Hz
 - Non-blocking message queues between processing stages
